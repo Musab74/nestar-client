@@ -5,6 +5,10 @@ import { Pagination, Stack, Typography } from '@mui/material';
 import PropertyCard from '../property/PropertyCard';
 import { Property } from '../../types/property/property';
 import { T } from '../../types/common';
+import { LIKE_TARGET_PROPERTY } from '../../../apollo/user/mutation';
+import { GET_FAVORITES } from '../../../apollo/user/query';
+import { useMutation, useQuery } from '@apollo/client';
+import { sweetErrorAlert } from '../../sweetAlert';
 
 const MyFavorites: NextPage = () => {
 	const device = useDeviceDetect();
@@ -13,11 +17,46 @@ const MyFavorites: NextPage = () => {
 	const [searchFavorites, setSearchFavorites] = useState<T>({ page: 1, limit: 6 });
 
 	/** APOLLO REQUESTS **/
+	const [likeTargetProperty] = useMutation(LIKE_TARGET_PROPERTY);
+
+	const {
+		loading: getMyFavoritesLoading,
+		data: getMyFavoritesData,
+		error: getMyFavoritesError,
+		refetch: getMyFavoritesRefetch,
+	} = useQuery(GET_FAVORITES, { 
+		fetchPolicy: 'network-only',
+		variables: {
+			input: searchFavorites,
+		},
+		notifyOnNetworkStatusChange: true,
+		onCompleted: (data: T) => {
+			setMyFavorites(data?.getFavorites?.list);
+			setTotal(data?.getFavorites?.metaCounter[0]?.total || 0);
+		},
+	});
 
 	/** HANDLERS **/
 	const paginationHandler = (e: T, value: number) => {
 		setSearchFavorites({ ...searchFavorites, page: value });
 	};
+
+	const handleLikeTargetProperty = async (user:any, id:string) => {
+		try {
+			if(!id) return;
+			if(!user._id) throw new Error('You are not authenticated, please login first!');
+			await likeTargetProperty({
+				variables: {
+					input: id, }
+			});
+		} catch (error) {
+			if (error instanceof Error) {
+				sweetErrorAlert(error.message).then();
+			} else {
+				sweetErrorAlert('An unknown error occurred').then();
+				}
+			} // Add the missing closing brace for the 'if (device === 'mobile')' block
+		}
 
 	if (device === 'mobile') {
 		return <div>NESTAR MY FAVORITES MOBILE</div>;
@@ -33,7 +72,7 @@ const MyFavorites: NextPage = () => {
 				<Stack className="favorites-list-box">
 					{myFavorites?.length ? (
 						myFavorites?.map((property: Property) => {
-							return <PropertyCard property={property} myFavorites={true} />;
+							return <PropertyCard property={property} likePropertyHandler={handleLikeTargetProperty} myFavorites={true} />;
 						})
 					) : (
 						<div className={'no-data'}>
