@@ -46,72 +46,78 @@ const AgentDetail: NextPage = ({ initialInput, initialComment, ...props }: any) 
 		commentContent: '',
 		commentRefId: '',
 	});
-
-	/** APOLLO REQUESTS **/
-	const [createComment] = useMutation(CREATE_COMMENT);
-	const [likeTargetProperty] = useMutation(LIKE_TARGET_PROPERTY);
-	const {
-		loading: getMemberLoading,
-		data: getMemberData,
-		error: getMemberError,
-		refetch: getMemberRefetch,
-	} = useQuery(GET_MEMBER, {
-		fetchPolicy: 'network-only',
-		variables: { input: mbId },
-		skip: !mbId,
-		notifyOnNetworkStatusChange: true,
-		onCompleted: (data: T) => {
-			setAgent(data?.getMember);
-			setSearchFilter({
-				...searchFilter,
-				search: {
-					memberId: data?.getMember?._id,
-				},
-			});
-			setCommentInquiry({
-				...commentInquiry,
-				search: {
-					commentRefId: data?.getMember?._id,
-				},
-			});
-			setInsertCommentData({
-				...insertCommentData,
-				commentRefId: data?.getMember?._id,
-			});
-		},
-	});
-
-	const {
-		loading: getPropertiesLoading,
-		data: getPropertiesData,
-		error: getPropertiesError,
-		refetch: getPropertiesRefetch,
-	} = useQuery(GET_PROPERTIES, {
-		fetchPolicy: 'network-only',
-		variables: { input: searchFilter },
-		skip: !searchFilter.search.memberId,
-		notifyOnNetworkStatusChange: true,
-		onCompleted: (data: T) => {
-			setAgentProperties(data?.getProperties?.list);
-			setPropertyTotal(data?.getProperties?.metaCounter[0]?.total ?? 0);
-		},
-	});
-
-	const {
-		loading: getCommentsLoading,
-		data: getCommentsData,
-		error: getCommentsError,
-		refetch: getCommentsRefetch,
-	} = useQuery(GET_COMMENTS, {
-		fetchPolicy: 'network-only',
-		variables: { input: commentInquiry },
-		skip: !commentInquiry.search.commentRefId,
-		notifyOnNetworkStatusChange: true,
-		onCompleted: (data: T) => {
-			setAgentComments(data?.getComments?.list);
-			setCommentTotal(data?.getComments?.metaCounter[0]?.total ?? 0);
-		},
-	});
+/** APOLLO REQUESTS **/
+const {
+	loading: getAgentLoading,
+	data: getAgentData,
+	error: getAgentError,
+	refetch: getAgentRefetch,
+   } = useQuery(GET_MEMBER, {
+	fetchPolicy: 'network-only',
+	variables: {
+	 input: mbId,
+	},
+	skip: !mbId,
+	notifyOnNetworkStatusChange: true,
+	onCompleted: (data: T) => {
+	 setAgent(data?.getMember);
+	 setSearchFilter({
+	  ...searchFilter,
+	  search: {
+	   memberId: data?.getMember?._id,
+	  },
+	 });
+  
+	 setCommentInquiry({
+	  ...commentInquiry,
+	  search: {
+	   commentRefId: data?.getMember?._id,
+	  },
+	 });
+	 setInsertCommentData({
+	  ...insertCommentData,
+	  commentRefId: data?.getMember?._id,
+	 });
+	},
+   });
+  
+   const {
+	loading: getPropertiesLoading,
+	data: getPropertiesData,
+	error: getPropertiesError,
+	refetch: getPropertiesRefetch,
+   } = useQuery(GET_PROPERTIES, {
+	fetchPolicy: 'network-only',
+	variables: {
+	 input: searchFilter,
+	},
+	skip: !searchFilter.search.memberId,
+	notifyOnNetworkStatusChange: true,
+	onCompleted: (data: T) => {
+	 setAgentProperties(data?.getProperties?.list);
+	 setPropertyTotal(data?.getProperties?.metaCounter[0].total);
+	},
+   });
+   const [likeTargetProperty] = useMutation(LIKE_TARGET_PROPERTY);
+   const [createComment] = useMutation(CREATE_COMMENT);
+  
+   const {
+	loading: getCommentsLoading,
+	data: getCommentsData,
+	error: getCommentsError,
+	refetch: getCommentsRefetch,
+   } = useQuery(GET_COMMENTS, {
+	fetchPolicy: 'cache-and-network',
+	variables: {
+	 input: initialComment,
+	},
+	skip: !commentInquiry.search?.commentRefId,
+	notifyOnNetworkStatusChange: true,
+	onCompleted: (data: T) => {
+	 setAgentComments(data?.getComments?.list);
+	 setCommentTotal(data?.getComments?.metaCounter[0]?.total);
+	},
+   });
 
 	/** LIFECYCLE **/
 	useEffect(() => {
