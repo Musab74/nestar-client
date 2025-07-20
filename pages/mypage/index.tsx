@@ -10,7 +10,7 @@ import RecentlyVisited from '../../libs/components/mypage/RecentlyVisited';
 import AddProperty from '../../libs/components/mypage/AddNewProperty';
 import MyProfile from '../../libs/components/mypage/MyProfile';
 import MyArticles from '../../libs/components/mypage/MyArticles';
-import { useReactiveVar } from '@apollo/client';
+import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../apollo/store';
 import MyMenu from '../../libs/components/mypage/MyMenu';
 import WriteArticle from '../../libs/components/mypage/WriteArticle';
@@ -18,6 +18,8 @@ import MemberFollowers from '../../libs/components/member/MemberFollowers';
 import { sweetErrorHandling } from '../../libs/sweetAlert';
 import MemberFollowings from '../../libs/components/member/MemberFollowings';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { CREATE_PROPERTY } from '../../apollo/user/mutation';
+import { GET_PROPERTY } from '../../apollo/user/query';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -32,6 +34,7 @@ const MyPage: NextPage = () => {
 	const category: any = router.query?.category ?? 'myProfile';
 
 	/** APOLLO REQUESTS **/
+
 
 	/** LIFECYCLES **/
 	useEffect(() => {
