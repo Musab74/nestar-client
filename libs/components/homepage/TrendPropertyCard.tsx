@@ -9,6 +9,8 @@ import { REACT_APP_API_URL } from '../../config';
 import { useRouter } from 'next/router';
 import { useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
+import { T } from '../../types/common';
+import { on } from 'events';
 
 interface TrendPropertyCardProps {
 	property: Property;
@@ -16,6 +18,10 @@ interface TrendPropertyCardProps {
 
 const TrendPropertyCard = (props: TrendPropertyCardProps) => {
 	const { property } = props;
+	const likeTargetProperty = (user: T, id: string): void => {
+		// Add logic for liking a property here
+		console.log(`User ${user} liked property with ID ${id}`);
+	};
 	const device = useDeviceDetect();
 	const router = useRouter();
 	const user = useReactiveVar(userVar);
@@ -111,13 +117,17 @@ const TrendPropertyCard = (props: TrendPropertyCardProps) => {
 								<RemoveRedEyeIcon />
 							</IconButton>
 							<Typography className="view-cnt">{property?.propertyViews}</Typography>
-							<IconButton color={'default'}>
+							<IconButton
+								color="default"
+								onClick={() => likeTargetProperty(user, property._id)}
+							>
 								{property?.meLiked && property?.meLiked[0]?.myFavorite ? (
 									<FavoriteIcon style={{ color: 'red' }} />
 								) : (
 									<FavoriteIcon />
 								)}
 							</IconButton>
+
 							<Typography className="view-cnt">{property?.propertyLikes}</Typography>
 						</div>
 					</div>
