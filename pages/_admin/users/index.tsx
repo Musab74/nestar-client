@@ -103,7 +103,8 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 	const updateMemberHandler = async (updateData: MemberUpdate) => {
 		try {
 			await updateMemberByAdmin({
-				variables: { input: updateData },
+				variables: { input: updateData,
+				 },
 			});
 			menuIconCloseHandler();
 
