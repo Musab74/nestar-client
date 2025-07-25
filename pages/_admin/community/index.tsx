@@ -122,23 +122,37 @@ const AdminCommunity: NextPage = ({ initialInquiry, ...props }: any) => {
 
 	const updateArticleHandler = async (updateData: BoardArticleUpdate) => {
 		try {
-			console.log('+updateData: ', updateData);
-
+			await updateBoardArticleByAdmin({
+				variables: {
+					input: updateData,
+				},
+			});
+			await getAllBoardArticleByAdminRefetch({ input: communityInquiry });
 			menuIconCloseHandler();
 		} catch (err: any) {
 			menuIconCloseHandler();
-			sweetErrorHandling(err).then();
+			sweetErrorHandling(err);
 		}
 	};
+	
 
 	const removeArticleHandler = async (id: string) => {
 		try {
-			if (await sweetConfirmAlert('are you sure to remove?')) {
+			const confirmed = await sweetConfirmAlert('Are you sure to remove?');
+			if (confirmed) {
+				await removeBoardArticleByAdmin({
+					variables: {
+						input: id,
+					},
+				});
+				await getAllBoardArticleByAdminRefetch({ input: communityInquiry });
+				menuIconCloseHandler(); 
 			}
 		} catch (err: any) {
-			sweetErrorHandling(err).then();
+			await sweetErrorHandling(err);
 		}
 	};
+	
 
 	console.log('+communityInquiry', communityInquiry);
 	console.log('+articles', articles);

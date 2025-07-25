@@ -72,6 +72,7 @@ const AdminProperties: NextPage = ({ initialInquiry, ...props }: any) => {
 	const menuIconClickHandler = (e: any, index: number) => {
 		const tempAnchor = anchorEl.slice();
 		tempAnchor[index] = e.currentTarget;
+		
 		setAnchorEl(tempAnchor);
 	};
 
@@ -150,6 +151,7 @@ const AdminProperties: NextPage = ({ initialInquiry, ...props }: any) => {
 					input: updateData,
 				},
 			});
+			await getAllPropertiesByAdminRefetch({ input: propertiesInquiry });
 			menuIconCloseHandler();
 		} catch (err: any) {
 			menuIconCloseHandler();
