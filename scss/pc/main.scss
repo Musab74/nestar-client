@@ -581,6 +581,16 @@ body::-webkit-scrollbar {
 				justify-content: flex-start;
 				overflow: auto;
 				.chat-main {
+					.welcome {
+						margin-left: 10px;
+						padding: 9px;
+						width: auto;
+						height: auto;
+						display: flex;
+						background: #0d72b1;
+						border-radius: 20px 20px 20px 0px;
+						color: #cd0c0c;
+					}
 					position: relative;
 					width: 100%;
 					display: flex;
