@@ -7,6 +7,9 @@ import MarkChatUnreadIcon from '@mui/icons-material/MarkChatUnread';
 import { useRouter } from 'next/router';
 import ScrollableFeed from 'react-scrollable-feed';
 import { RippleBadge } from '../../scss/MaterialTheme/styled';
+import { useReactiveVar } from '@apollo/client';
+import { socketVar, userVar } from '../../apollo/store';
+import { Member } from '../types/member/member';
 
 const NewMessage = (type: any) => {
 	if (type === 'right') {
@@ -32,17 +35,57 @@ const NewMessage = (type: any) => {
 	}
 };
 
+interface MessagePayload {
+	event: string;
+	text: string;
+	memberData: Member;
+}
+
+interface InfoPayload {
+	event: string;
+	totalClients: number;
+	memberData: Member;
+	action: string;
+}
+
 const Chat = () => {
 	const chatContentRef = useRef<HTMLDivElement>(null);
-	const [messagesList, setMessagesList] = useState([]);
+	const [messagesList, setMessagesList] = useState<MessagePayload[]>([]);
 	const [onlineUsers, setOnlineUsers] = useState<number>(0);
 	const textInput = useRef(null);
 	const [message, setMessage] = useState<string>('');
 	const [open, setOpen] = useState(false);
 	const [openButton, setOpenButton] = useState(false);
 	const router = useRouter();
+	const user = useReactiveVar(userVar);
+	const socket = useReactiveVar(socketVar)
 
 	/** LIFECYCLES **/
+
+	useEffect(() => {
+		socket.onmessage = (msg) => {
+			const data = JSON.parse(msg.data);
+			console.log('WebSocket message received: ', data);
+
+			switch (data.event) {
+				case "info":
+					const newInfo: InfoPayload = data
+					setOnlineUsers(newInfo.totalClients);
+					break;
+				case "getMessage":
+					const list: MessagePayload[] = data.list;
+					setMessagesList(list);
+					break;
+				case "message":
+					const newMessage: MessagePayload = data;
+					setMessagesList([...messagesList]);
+					break;
+
+			}
+
+		}
+	}, [socket, messagesList]);
+
 	useEffect(() => {
 		const timeoutId = setTimeout(() => {
 			setOpenButton(true);
@@ -77,7 +120,14 @@ const Chat = () => {
 		}
 	};
 
-	const onClickHandler = () => {};
+	const onClickHandler = () => {
+		if (!message.trim()) return;
+		if (socket?.readyState === WebSocket.OPEN) {
+			socket.send(JSON.stringify({ event: 'message', text: message }));
+			setMessage('');
+		}
+	};
+	
 
 	return (
 		<Stack className="chatting">
@@ -90,15 +140,6 @@ const Chat = () => {
 				<Box className={'chat-top'} component={'div'}>
 					<div style={{ fontFamily: 'Nunito' }}>Online Chat</div>
 					<RippleBadge style={{ margin: '-18px 0 0 21px' }} badgeContent={onlineUsers} />
-
-					<Badge
-						style={{
-							margin: '-30px 0 0 20px',
-							color: '#33c1c1',
-							background: 'none',
-						}}
-						badgeContent={4}
-					/>
 				</Box>
 				<Box className={'chat-content'} id="chat-content" ref={chatContentRef} component={'div'}>
 					<ScrollableFeed>
@@ -106,9 +147,10 @@ const Chat = () => {
 							<Box flexDirection={'row'} style={{ display: 'flex' }} sx={{ m: '10px 0px' }} component={'div'}>
 								<div className={'welcome'}>Welcome to Live chat!</div>
 							</Box>
-							{messagesList}
-							<>
-								<Box
+							{messagesList.map((ele: MessagePayload) => {
+								const { memberData, text } = ele;
+								const memberImage = memberData?.memberImage || '/img/profile/defaultUser.svg';
+								return memberData?._id === user?._id ? (<Box
 									component={'div'}
 									flexDirection={'row'}
 									style={{ display: 'flex' }}
@@ -116,12 +158,15 @@ const Chat = () => {
 									justifyContent={'flex-end'}
 									sx={{ m: '10px 0px' }}
 								>
-									<div className={'msg-right'}>hi</div>
-								</Box>
-								<Box flexDirection={'row'} style={{ display: 'flex' }} sx={{ m: '10px 0px' }} component={'div'}>
-									<Avatar alt={'jonik'} src={'/img/profile/defaultUser.svg'} />
-									<div className={'msg-left'}>Hi</div>
-								</Box>
+									<div className={'msg-right'}>{text}</div>
+								</Box>) : (
+									<Box flexDirection={'row'} style={{ display: 'flex' }} sx={{ m: '10px 0px' }} component={'div'}>
+										<Avatar alt={'jonik'} src={memberImage} />
+										<div className={'msg-left'}>{text}</div>
+									</Box>)
+							})}
+							<>
+
 							</>
 						</Stack>
 					</ScrollableFeed>
